@@ -24,6 +24,7 @@ let drinksCollection;
 let currentUser = null;
 let unsubscribe = null; // 用來取消監聽
 let editingId = null; // 記錄正在編輯的文件 ID
+let allRecords = []; // 儲存所有紀錄供匯出使用
 
 // 檢查並啟動 Firebase
 if (!firebaseConfig.apiKey) {
@@ -173,6 +174,9 @@ function showMessage(msg, type = 'success') {
 }
 
 function updateRecordList(records) {
+    // 更新全域變數
+    allRecords = records;
+    
     const recordList = document.getElementById('recordList');
     const recordCountText = document.getElementById('recordCount');
     
@@ -282,6 +286,44 @@ window.editDrink = (id, date, store, item, ice, sugar, note) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     showMessage('正在編輯紀錄，修改完請按更新按鈕', 'success');
 };
+
+// 匯出功能
+document.getElementById('exportBtn').addEventListener('click', () => {
+    if (allRecords.length === 0) {
+        showMessage('目前沒有紀錄可以匯出喔！', 'error');
+        return;
+    }
+
+    // 整理資料格式
+    const exportData = allRecords.map(r => ({
+        '日期': r.date,
+        '店家': r.store,
+        '品項': r.item,
+        '冰塊': r.ice,
+        '甜度': r.sugar,
+        '備註': r.note || ''
+    }));
+
+    // 建立工作表
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "飲料紀錄");
+
+    // --- 產生智慧檔名 ---
+    // 1. 取得使用者名稱
+    const userName = currentUser ? (currentUser.displayName || 'User') : 'User';
+    
+    // 2. 找出資料中的日期範圍 (資料已依 timestamp 排序，最新的在前面)
+    // 由於我們可能有手動選日期，所以用 Math.min/max 比較保險
+    const dates = allRecords.map(r => r.date).filter(Boolean).sort();
+    const startDate = dates[0]; // 最早
+    const endDate = dates[dates.length - 1]; // 最晚
+    
+    const fileName = `${userName}_飲料紀錄_${startDate}_${endDate}.xlsx`;
+
+    // 下載檔案
+    XLSX.writeFile(wb, fileName);
+});
 
 // 分享功能 (掛載到 window 以便 onclick 呼叫)
 window.shareDrink = async (store, item, ice, sugar, note) => {

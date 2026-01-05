@@ -9,6 +9,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#fffaf0">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="style.css">
     <script>
         if ('serviceWorker' in navigator) {
@@ -125,9 +126,26 @@
 
         <!-- 紀錄列表 -->
         <div class="bg-white rounded-3xl shadow-xl shadow-orange-100/50 p-6 md:p-8 border border-orange-50">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-xl font-black text-orange-900">最近喝過什麼？</h2>
-                <span id="recordCount" class="text-xs font-bold bg-orange-100 text-orange-600 px-3 py-1 rounded-full">載入中...</span>
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+                <div class="flex items-center gap-3">
+                    <h2 class="text-xl font-black text-orange-900">最近喝過什麼？</h2>
+                    <span id="recordCount" class="text-xs font-bold bg-orange-100 text-orange-600 px-3 py-1 rounded-full">載入中...</span>
+                </div>
+                
+                <!-- 篩選與匯出工具列 -->
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <div class="flex items-center bg-orange-50 rounded-lg p-1 border border-orange-100">
+                        <input type="date" id="filterStartDate" class="bg-transparent text-xs font-bold text-stone-600 outline-none px-2 py-1 w-28">
+                        <span class="text-orange-300">~</span>
+                        <input type="date" id="filterEndDate" class="bg-transparent text-xs font-bold text-stone-600 outline-none px-2 py-1 w-28">
+                    </div>
+                    <button id="exportBtn" class="text-xs font-bold text-green-600 hover:text-green-800 bg-green-50 hover:bg-green-100 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        匯出
+                    </button>
+                </div>
             </div>
             <div id="recordList" class="space-y-4">
                 <div class="text-center py-10 animate-pulse">
