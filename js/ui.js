@@ -42,8 +42,11 @@ export function renderRecordList(records, handlers) {
     const recordCountText = document.getElementById('recordCount');
     const { onEdit, onDelete, onShare } = handlers;
 
-    // 更新計數
-    recordCountText.textContent = `${records.length} 筆紀錄`;
+    // 計算總金額
+    const totalAmount = records.reduce((sum, r) => sum + (parseInt(r.price) || 0), 0);
+
+    // 更新計數與總額
+    recordCountText.innerHTML = `${records.length} 筆 · <span class="text-orange-600">$${totalAmount.toLocaleString()}</span>`;
     
     if (records.length === 0) {
         recordList.innerHTML = `<p class="text-center py-10 text-stone-400">沒有符合條件的紀錄喔！</p>`;
@@ -54,7 +57,10 @@ export function renderRecordList(records, handlers) {
         <div class="border border-orange-100 bg-orange-50/20 p-5 rounded-2xl transition-all hover:bg-white hover:shadow-md group relative">
             <div class="flex justify-between items-start mb-2">
                 <span class="text-[10px] font-black tracking-tighter text-orange-400 bg-white border border-orange-100 px-2 py-0.5 rounded-full uppercase">${r.date}</span>
-                <span class="text-sm font-bold text-stone-500">${r.store}</span>
+                <div class="text-right">
+                    <span class="block text-sm font-bold text-stone-500">${r.store}</span>
+                    ${r.price ? `<span class="text-sm font-black text-orange-600">$${r.price}</span>` : ''}
+                </div>
             </div>
             <div class="text-lg font-black text-stone-800 mb-3">${r.item}</div>
             <div class="flex gap-2 text-xs mb-3">

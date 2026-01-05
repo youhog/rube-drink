@@ -2,6 +2,7 @@
 import * as FB from './firebase.js';
 import * as UI from './ui.js';
 import * as Utils from './utils.js';
+import * as Charts from './chart.js';
 
 // 全域變數
 let currentUser = null;
@@ -56,6 +57,7 @@ function startListening(uid) {
         applyFilter(); 
         UI.renderQuickOrders(allRecords, handleQuickFill);
         UI.updateDatalists(allRecords);
+        Charts.updateChart(allRecords);
         
     }, (error) => {
         console.error("讀取資料失敗:", error);
@@ -93,6 +95,7 @@ function applyFilter() {
 function handleQuickFill(record) {
     document.getElementById('store').value = record.store;
     document.getElementById('item').value = record.item;
+    document.getElementById('price').value = record.price || ''; // 帶入價格
     if(record.note) document.getElementById('note').value = record.note;
     
     UI.setOptionActive('iceOptions', record.ice);
@@ -109,6 +112,7 @@ function handleQuickFill(record) {
 function handleEdit(record) {
     editingId = record.id;
     document.getElementById('date').value = record.date;
+    document.getElementById('price').value = record.price || ''; // 帶入價格
     document.getElementById('store').value = record.store;
     document.getElementById('item').value = record.item;
     document.getElementById('note').value = record.note || '';
@@ -128,37 +132,7 @@ function handleEdit(record) {
     UI.showMessage('正在編輯紀錄，修改完請按更新按鈕', 'success');
 }
 
-// 刪除請求處理 (顯示 Modal)
-function handleDeleteRequest(id) {
-    deleteTargetId = id;
-    document.getElementById('deleteModal').classList.remove('hidden');
-}
-
-// 確認刪除處理
-async function handleConfirmDelete() {
-    if (!deleteTargetId) return;
-    
-    const confirmBtn = document.getElementById('confirmDeleteBtn');
-    confirmBtn.disabled = true;
-    confirmBtn.textContent = "刪除中...";
-
-    try {
-        await FB.deleteDoc(FB.doc(FB.db, "drinks", deleteTargetId));
-        UI.showMessage('紀錄已刪除 🗑️');
-        closeDeleteModal();
-    } catch (error) {
-        UI.showMessage('刪除失敗：' + error.message, 'error');
-    } finally {
-        confirmBtn.disabled = false;
-        confirmBtn.textContent = "刪除它";
-    }
-}
-
-// 關閉刪除 Modal
-function closeDeleteModal() {
-    deleteTargetId = null;
-    document.getElementById('deleteModal').classList.add('hidden');
-}
+// ... (中略) ...
 
 // 表單提交處理
 async function handleSubmit(e) {
@@ -175,6 +149,7 @@ async function handleSubmit(e) {
     const drinkData = {
         uid: currentUser.uid,
         date: document.getElementById('date').value,
+        price: document.getElementById('price').value, // 寫入價格
         store: document.getElementById('store').value,
         item: document.getElementById('item').value,
         ice: document.getElementById('iceValue').value,

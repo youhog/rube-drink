@@ -11,6 +11,7 @@ export function exportToExcel(records, userName = 'User') {
         '日期': r.date,
         '店家': r.store,
         '品項': r.item,
+        '價格': r.price || 0,
         '冰塊': r.ice,
         '甜度': r.sugar,
         '備註': r.note || ''
