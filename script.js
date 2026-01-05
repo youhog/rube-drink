@@ -37,9 +37,50 @@ if (!firebaseConfig.apiKey) {
     // 監聽登入狀態
     initAuth();
 }
-// ... (保留 initAuth 等函式) ...
 
-// 表單提交
+function initAuth() {
+    const loginSection = document.getElementById('loginSection');
+    const appSection = document.getElementById('appSection');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const userAvatar = document.getElementById('userAvatar');
+    const userName = document.getElementById('userName');
+
+    // 登入按鈕
+    loginBtn.addEventListener('click', () => {
+        const provider = new GoogleAuthProvider();
+        signInWithPopup(auth, provider)
+            .catch((error) => showMessage('登入失敗: ' + error.message, 'error'));
+    });
+
+    // 登出按鈕
+    logoutBtn.addEventListener('click', () => {
+        signOut(auth).then(() => {
+            showMessage('已登出 👋');
+        });
+    });
+
+    // 狀態監聽
+    onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+        if (user) {
+            // 已登入
+            loginSection.classList.add('hidden');
+            appSection.classList.remove('hidden');
+            userAvatar.src = user.photoURL;
+            userName.textContent = user.displayName;
+            startListening(user.uid);
+        } else {
+            // 未登入
+            loginSection.classList.remove('hidden');
+            appSection.classList.add('hidden');
+            if (unsubscribe) unsubscribe(); // 停止監聽資料
+            document.getElementById('recordList').innerHTML = ''; // 清空列表
+        }
+    });
+}
+
+// 監聽資料庫 (只監聽自己的資料)
 const drinkForm = document.getElementById('drinkForm');
 const submitBtn = document.getElementById('submitBtn');
 
