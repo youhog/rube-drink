@@ -52,9 +52,11 @@
                         <p id="userName" class="text-xs text-orange-600/70 font-bold">載入中...</p>
                     </div>
                 </div>
-                <button id="logoutBtn" class="text-xs font-bold text-stone-400 hover:text-red-500 bg-stone-50 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors">
-                    登出
-                </button>
+                <div class="flex items-center">
+                    <button id="logoutBtn" class="text-xs font-bold text-stone-400 hover:text-red-500 bg-stone-50 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors">
+                        登出
+                    </button>
+                </div>
             </div>
 
             <form id="drinkForm" class="space-y-6">
@@ -68,11 +70,13 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-bold text-orange-900 mb-2 ml-1">購買店家</label>
-                        <input type="text" id="store" placeholder="例如：可不可熟成紅茶" class="w-full px-4 py-3 bg-orange-50/30 border border-orange-100 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 outline-none transition" required>
+                        <input type="text" id="store" list="store-list" placeholder="例如：可不可熟成紅茶" class="w-full px-4 py-3 bg-orange-50/30 border border-orange-100 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 outline-none transition" required>
+                        <datalist id="store-list"></datalist>
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-orange-900 mb-2 ml-1">飲料品項</label>
-                        <input type="text" id="item" placeholder="例如：胭脂紅茶" class="w-full px-4 py-3 bg-orange-50/30 border border-orange-100 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 outline-none transition" required>
+                        <input type="text" id="item" list="item-list" placeholder="例如：胭脂紅茶" class="w-full px-4 py-3 bg-orange-50/30 border border-orange-100 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 outline-none transition" required>
+                        <datalist id="item-list"></datalist>
                     </div>
                 </div>
 

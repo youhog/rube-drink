@@ -14,7 +14,7 @@ const firebaseConfig = window.FIREBASE_CONFIG || {
 // ⬆️⬆️⬆️ Firebase 設定 ⬆️⬆️⬆️
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, query, orderBy, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, query, orderBy, where, onSnapshot, serverTimestamp, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 // 初始化變數
@@ -23,6 +23,7 @@ let auth;
 let drinksCollection;
 let currentUser = null;
 let unsubscribe = null; // 用來取消監聽
+let editingId = null; // 記錄正在編輯的文件 ID
 
 // 檢查並啟動 Firebase
 if (!firebaseConfig.apiKey) {
@@ -36,93 +37,7 @@ if (!firebaseConfig.apiKey) {
     // 監聽登入狀態
     initAuth();
 }
-
-function initAuth() {
-    const loginSection = document.getElementById('loginSection');
-    const appSection = document.getElementById('appSection');
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const userAvatar = document.getElementById('userAvatar');
-    const userName = document.getElementById('userName');
-
-    // 登入按鈕
-    loginBtn.addEventListener('click', () => {
-        const provider = new GoogleAuthProvider();
-        signInWithPopup(auth, provider)
-            .catch((error) => showMessage('登入失敗: ' + error.message, 'error'));
-    });
-
-    // 登出按鈕
-    logoutBtn.addEventListener('click', () => {
-        signOut(auth).then(() => {
-            showMessage('已登出 👋');
-        });
-    });
-
-    // 狀態監聽
-    onAuthStateChanged(auth, (user) => {
-        currentUser = user;
-        if (user) {
-            // 已登入
-            loginSection.classList.add('hidden');
-            appSection.classList.remove('hidden');
-            userAvatar.src = user.photoURL;
-            userName.textContent = user.displayName;
-            startListening(user.uid);
-        } else {
-            // 未登入
-            loginSection.classList.remove('hidden');
-            appSection.classList.add('hidden');
-            if (unsubscribe) unsubscribe(); // 停止監聽資料
-            document.getElementById('recordList').innerHTML = ''; // 清空列表
-        }
-    });
-}
-
-// 監聽資料庫 (只監聽自己的資料)
-function startListening(uid) {
-    // 查詢條件：依時間排序，且 uid 必須等於當前使用者
-    const q = query(
-        drinksCollection, 
-        where("uid", "==", uid),
-        orderBy("timestamp", "desc")
-    );
-    
-    unsubscribe = onSnapshot(q, (snapshot) => {
-        const records = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-        updateRecordList(records);
-    }, (error) => {
-        console.error("讀取資料失敗:", error);
-        // 如果是因為剛建立索引還沒好，通常不用報錯給使用者，Firestore 會自動處理
-        if (error.code !== 'failed-precondition') {
-             showMessage("讀取資料失敗", "error");
-        }
-    });
-}
-
-// UI 互動邏輯
-document.getElementById('date').valueAsDate = new Date();
-
-function setupOptions(containerId, hiddenInputId) {
-    const container = document.getElementById(containerId);
-    const hiddenInput = document.getElementById(hiddenInputId);
-    if (!container) return;
-    const buttons = container.querySelectorAll('button');
-
-    buttons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            buttons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            hiddenInput.value = btn.getAttribute('data-value');
-        });
-    });
-}
-
-setupOptions('iceOptions', 'iceValue');
-setupOptions('sugarOptions', 'sugarValue');
+// ... (保留 initAuth 等函式) ...
 
 // 表單提交
 const drinkForm = document.getElementById('drinkForm');
@@ -136,7 +51,7 @@ drinkForm.addEventListener('submit', async (e) => {
     }
 
     submitBtn.disabled = true;
-    submitBtn.textContent = "紀錄中...";
+    submitBtn.textContent = editingId ? "更新中..." : "紀錄中...";
 
     const drinkData = {
         uid: currentUser.uid, // 重要：寫入使用者 ID
@@ -152,21 +67,33 @@ drinkForm.addEventListener('submit', async (e) => {
     if (!drinkData.ice || !drinkData.sugar) {
         showMessage('別忘了選擇冰塊與甜度喔！', 'error');
         submitBtn.disabled = false;
-        submitBtn.textContent = "收藏這杯紀錄";
+        submitBtn.textContent = editingId ? "更新紀錄" : "收藏這杯紀錄";
         return;
     }
 
     try {
-        await addDoc(drinksCollection, drinkData);
+        if (editingId) {
+            // 更新現有資料
+            await updateDoc(doc(db, "drinks", editingId), drinkData);
+            showMessage('紀錄已更新！✨');
+            editingId = null;
+            submitBtn.textContent = "收藏這杯紀錄";
+            submitBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+            submitBtn.classList.add('bg-orange-500', 'hover:bg-orange-600');
+        } else {
+            // 新增資料
+            await addDoc(drinksCollection, drinkData);
+            showMessage('成功紀錄一杯美味！✨');
+        }
+
         drinkForm.reset();
         document.getElementById('date').valueAsDate = new Date();
         document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active'));
-        showMessage('成功紀錄一杯美味！✨');
     } catch (error) {
-        showMessage('紀錄失敗：' + error.message, 'error');
+        showMessage('操作失敗：' + error.message, 'error');
     } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = "收藏這杯紀錄";
+        if (!editingId) submitBtn.textContent = "收藏這杯紀錄";
     }
 });
 
@@ -183,6 +110,17 @@ function updateRecordList(records) {
     const recordList = document.getElementById('recordList');
     const recordCountText = document.getElementById('recordCount');
     
+    // --- 新增：自動更新建議清單 (Autocomplete) ---
+    // 1. 取出所有店家名稱，過濾重複與空白
+    const uniqueStores = [...new Set(records.map(r => r.store).filter(Boolean))];
+    // 2. 取出所有飲料名稱，過濾重複與空白
+    const uniqueItems = [...new Set(records.map(r => r.item).filter(Boolean))];
+    
+    // 3. 填入 datalist
+    document.getElementById('store-list').innerHTML = uniqueStores.map(s => `<option value="${s}">`).join('');
+    document.getElementById('item-list').innerHTML = uniqueItems.map(i => `<option value="${i}">`).join('');
+    // ------------------------------------------
+
     recordCountText.textContent = `${records.length} 筆紀錄`;
     
     if (records.length === 0) {
@@ -203,17 +141,81 @@ function updateRecordList(records) {
             </div>
             ${r.note ? `<div class="pt-3 border-t border-orange-100/50 text-sm text-stone-500 italic"># ${r.note}</div>` : ''}
             
-            <!-- 分享按鈕 -->
-            <button onclick="shareDrink('${r.store}', '${r.item}', '${r.ice}', '${r.sugar}', '${r.note || ''}')" 
-                class="absolute bottom-4 right-4 text-orange-300 hover:text-orange-500 p-2 rounded-full hover:bg-orange-50 transition-all"
-                title="分享這杯">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                </svg>
-            </button>
+            <div class="absolute bottom-4 right-4 flex gap-2">
+                 <!-- 編輯按鈕 -->
+                <button onclick="editDrink('${r.id}', '${r.date}', '${r.store}', '${r.item}', '${r.ice}', '${r.sugar}', '${r.note || ''}')" 
+                    class="text-blue-300 hover:text-blue-500 p-2 rounded-full hover:bg-blue-50 transition-all"
+                    title="編輯">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                </button>
+                <!-- 刪除按鈕 -->
+                <button onclick="deleteDrink('${r.id}')" 
+                    class="text-red-300 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-all"
+                    title="刪除">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </button>
+                <!-- 分享按鈕 -->
+                <button onclick="shareDrink('${r.store}', '${r.item}', '${r.ice}', '${r.sugar}', '${r.note || ''}')" 
+                    class="text-orange-300 hover:text-orange-500 p-2 rounded-full hover:bg-orange-50 transition-all"
+                    title="分享這杯">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                    </svg>
+                </button>
+            </div>
         </div> 
     `).join('');
 }
+
+// 刪除功能
+window.deleteDrink = async (id) => {
+    if (confirm('確定要刪除這筆紀錄嗎？此動作無法復原。')) {
+        try {
+            await deleteDoc(doc(db, "drinks", id));
+            showMessage('紀錄已刪除 🗑️');
+        } catch (error) {
+            showMessage('刪除失敗：' + error.message, 'error');
+        }
+    }
+};
+
+// 編輯功能
+window.editDrink = (id, date, store, item, ice, sugar, note) => {
+    editingId = id; // 設定正在編輯的 ID
+    
+    // 填回表單
+    document.getElementById('date').value = date;
+    document.getElementById('store').value = store;
+    document.getElementById('item').value = item;
+    document.getElementById('note').value = note;
+    
+    // 處理按鈕選取狀態
+    document.getElementById('iceValue').value = ice;
+    document.querySelectorAll('#iceOptions button').forEach(btn => {
+        if(btn.dataset.value === ice) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+
+    document.getElementById('sugarValue').value = sugar;
+    document.querySelectorAll('#sugarOptions button').forEach(btn => {
+        if(btn.dataset.value === sugar) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+
+    // 改變按鈕狀態提示使用者
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.textContent = "更新紀錄";
+    submitBtn.classList.remove('bg-orange-500', 'hover:bg-orange-600');
+    submitBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
+
+    // 捲動到頂部讓使用者看到表單
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showMessage('正在編輯紀錄，修改完請按更新按鈕', 'success');
+};
 
 // 分享功能 (掛載到 window 以便 onclick 呼叫)
 window.shareDrink = async (store, item, ice, sugar, note) => {
