@@ -8,6 +8,7 @@ export function exportToExcel(records, userName = 'User') {
 
     // 整理資料格式
     const exportData = records.map(r => ({
+        '紀錄時間': r.timestamp ? new Date(r.timestamp.seconds * 1000).toLocaleString('zh-TW') : '無資料',
         '日期': r.date,
         '店家': r.store,
         '品項': r.item,
