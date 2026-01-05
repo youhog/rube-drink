@@ -8,7 +8,14 @@
     <link rel="apple-touch-icon" href="favicon.svg">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#fffaf0">
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css">
@@ -24,7 +31,6 @@
 </head>
 <body class="p-4 md:p-8 text-stone-800 transition-colors duration-300">
     
-    <!-- 登入畫面 -->
     <div id="loginSection" class="fixed inset-0 bg-[#fffaf0] dark:bg-stone-950 z-50 flex flex-col items-center justify-center p-6">
         <div class="bg-white dark:bg-stone-900 p-8 rounded-3xl shadow-xl shadow-orange-100 dark:shadow-none border border-orange-50 dark:border-stone-800 text-center max-w-sm w-full">
             <div class="bg-orange-100 dark:bg-orange-900/30 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -41,11 +47,8 @@
         <p class="mt-8 text-xs text-stone-400 font-bold tracking-widest uppercase">© 2026 Youzi • Drink Tracker</p>
     </div>
 
-    <!-- 主應用程式 -->
     <div id="appSection" class="max-w-2xl mx-auto hidden">
-        <!-- 表單卡片 -->
         <div class="bg-white dark:bg-stone-900 rounded-3xl shadow-xl shadow-orange-100/50 dark:shadow-none p-6 md:p-8 mb-8 border border-orange-50 dark:border-stone-800">
-            <!-- 頂部 User Bar -->
             <div class="flex items-center justify-between mb-8 pb-6 border-b border-orange-50 dark:border-stone-800">
                 <div class="flex items-center">
                     <img id="userAvatar" src="" class="w-10 h-10 rounded-full border-2 border-orange-200 dark:border-orange-900 mr-3" alt="Avatar">
@@ -174,7 +177,6 @@
         </footer>
     </div>
 
-    <!-- 刪除確認 Modal -->
     <div id="deleteModal" class="fixed inset-0 z-[60] hidden">
         <div class="absolute inset-0 bg-stone-900/30 dark:bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeDeleteModal()"></div>
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-stone-900 rounded-3xl p-6 w-[90%] max-w-sm shadow-2xl border border-orange-50 dark:border-stone-800 scale-100 transition-transform">
