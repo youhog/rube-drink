@@ -91,19 +91,43 @@ function startListening(uid) {
     );
     
     unsubscribe = onSnapshot(q, (snapshot) => {
-        const records = snapshot.docs.map(doc => ({
+        // 儲存原始資料
+        allRecords = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
-        updateRecordList(records);
+        // 載入後預設執行一次篩選 (顯示全部)
+        applyFilter();
     }, (error) => {
         console.error("讀取資料失敗:", error);
-        // 如果是因為剛建立索引還沒好，通常不用報錯給使用者，Firestore 會自動處理
         if (error.code !== 'failed-precondition') {
              showMessage("讀取資料失敗", "error");
         }
     });
 }
+
+// 篩選邏輯
+function applyFilter() {
+    const startDate = document.getElementById('filterStartDate').value;
+    const endDate = document.getElementById('filterEndDate').value;
+
+    // 如果沒選日期，就顯示全部
+    let filtered = allRecords;
+
+    if (startDate) {
+        filtered = filtered.filter(r => r.date >= startDate);
+    }
+    if (endDate) {
+        filtered = filtered.filter(r => r.date <= endDate);
+    }
+
+    // 更新列表顯示
+    updateRecordList(filtered);
+}
+
+// 綁定篩選器事件
+document.getElementById('filterStartDate').addEventListener('change', applyFilter);
+document.getElementById('filterEndDate').addEventListener('change', applyFilter);
 
 // UI 互動邏輯
 document.getElementById('date').valueAsDate = new Date();
@@ -308,13 +332,22 @@ window.editDrink = (id, date, store, item, ice, sugar, note) => {
 
 // 匯出功能
 document.getElementById('exportBtn').addEventListener('click', () => {
-    if (allRecords.length === 0) {
-        showMessage('目前沒有紀錄可以匯出喔！', 'error');
+    // 取得目前顯示的資料 (利用 applyFilter 的邏輯重新抓一次，或是修改 updateRecordList 讓它存一個全域變數)
+    // 這裡為了簡單且準確，我們直接讀取目前的篩選條件來過濾 allRecords
+    const startDate = document.getElementById('filterStartDate').value;
+    const endDate = document.getElementById('filterEndDate').value;
+    
+    let recordsToExport = allRecords;
+    if (startDate) recordsToExport = recordsToExport.filter(r => r.date >= startDate);
+    if (endDate) recordsToExport = recordsToExport.filter(r => r.date <= endDate);
+
+    if (recordsToExport.length === 0) {
+        showMessage('目前顯示範圍沒有紀錄可以匯出喔！', 'error');
         return;
     }
 
     // 整理資料格式
-    const exportData = allRecords.map(r => ({
+    const exportData = recordsToExport.map(r => ({
         '日期': r.date,
         '店家': r.store,
         '品項': r.item,
@@ -329,16 +362,14 @@ document.getElementById('exportBtn').addEventListener('click', () => {
     XLSX.utils.book_append_sheet(wb, ws, "飲料紀錄");
 
     // --- 產生智慧檔名 ---
-    // 1. 取得使用者名稱
     const userName = currentUser ? (currentUser.displayName || 'User') : 'User';
     
-    // 2. 找出資料中的日期範圍 (資料已依 timestamp 排序，最新的在前面)
-    // 由於我們可能有手動選日期，所以用 Math.min/max 比較保險
-    const dates = allRecords.map(r => r.date).filter(Boolean).sort();
-    const startDate = dates[0]; // 最早
-    const endDate = dates[dates.length - 1]; // 最晚
+    // 找出匯出資料的日期範圍
+    const dates = recordsToExport.map(r => r.date).filter(Boolean).sort();
+    const rangeStart = dates[0];
+    const rangeEnd = dates[dates.length - 1];
     
-    const fileName = `${userName}_飲料紀錄_${startDate}_${endDate}.xlsx`;
+    const fileName = `${userName}_飲料紀錄_${rangeStart}_${rangeEnd}.xlsx`;
 
     // 下載檔案
     XLSX.writeFile(wb, fileName);
