@@ -1,7 +1,6 @@
 // ----------------------------------------------------------- 
 // ⬇️⬇️⬇️ Firebase 設定 (部署時會被替換) ⬇️⬇️⬇️
 // ----------------------------------------------------------- 
-// 正式環境使用佔位符
 const firebaseConfig = window.FIREBASE_CONFIG || {
     apiKey: "YOUR_API_KEY_HERE",
     authDomain: "YOUR_AUTH_DOMAIN",
@@ -100,36 +99,16 @@ function startListening(uid) {
         applyFilter();
     }, (error) => {
         console.error("讀取資料失敗:", error);
+        // 如果是因為剛建立索引還沒好，通常不用報錯給使用者，Firestore 會自動處理
         if (error.code !== 'failed-precondition') {
              showMessage("讀取資料失敗", "error");
         }
     });
 }
 
-// 篩選邏輯
-function applyFilter() {
-    const startDate = document.getElementById('filterStartDate').value;
-    const endDate = document.getElementById('filterEndDate').value;
-
-    // 如果沒選日期，就顯示全部
-    let filtered = allRecords;
-
-    if (startDate) {
-        filtered = filtered.filter(r => r.date >= startDate);
-    }
-    if (endDate) {
-        filtered = filtered.filter(r => r.date <= endDate);
-    }
-
-    // 更新列表顯示
-    updateRecordList(filtered);
-}
-
-// 綁定篩選器事件
-document.getElementById('filterStartDate').addEventListener('change', applyFilter);
-document.getElementById('filterEndDate').addEventListener('change', applyFilter);
-
-// UI 互動邏輯
+// ----------------------------------------------------------- 
+// UI 互動邏輯 (移到最上方確保先執行)
+// ----------------------------------------------------------- 
 document.getElementById('date').valueAsDate = new Date();
 
 function setupOptions(containerId, hiddenInputId) {
@@ -149,7 +128,46 @@ function setupOptions(containerId, hiddenInputId) {
 
 setupOptions('iceOptions', 'iceValue');
 setupOptions('sugarOptions', 'sugarValue');
+// ----------------------------------------------------------- 
 
+// 篩選邏輯
+function applyFilter() {
+    // 防呆：如果尚未讀取到資料，則不執行
+    if (!allRecords) return;
+
+    const startDate = document.getElementById('filterStartDate').value;
+    const endDate = document.getElementById('filterEndDate').value;
+
+    let filtered = allRecords;
+
+    if (startDate) {
+        filtered = filtered.filter(r => r.date >= startDate);
+    }
+    if (endDate) {
+        filtered = filtered.filter(r => r.date <= endDate);
+    }
+
+    // 更新列表顯示
+    updateRecordList(filtered);
+}
+
+// 綁定篩選器事件
+const filterStartInput = document.getElementById('filterStartDate');
+const filterEndInput = document.getElementById('filterEndDate');
+
+if (filterStartInput && filterEndInput) {
+    // 改用 'input' 事件，反應更即時
+    filterStartInput.addEventListener('input', () => {
+        console.log("Start Date changed:", filterStartInput.value);
+        applyFilter();
+    });
+    filterEndInput.addEventListener('input', () => {
+        console.log("End Date changed:", filterEndInput.value);
+        applyFilter();
+    });
+}
+
+// 表單提交
 const drinkForm = document.getElementById('drinkForm');
 const submitBtn = document.getElementById('submitBtn');
 
@@ -217,19 +235,16 @@ function showMessage(msg, type = 'success') {
 }
 
 function updateRecordList(records) {
-    // 更新全域變數
-    allRecords = records;
-    
     const recordList = document.getElementById('recordList');
     const recordCountText = document.getElementById('recordCount');
     
     // --- 新增：自動更新建議清單 (Autocomplete) ---
-    // 1. 取出所有店家名稱，過濾重複與空白
-    const uniqueStores = [...new Set(records.map(r => r.store).filter(Boolean))];
-    // 2. 取出所有飲料名稱，過濾重複與空白
-    const uniqueItems = [...new Set(records.map(r => r.item).filter(Boolean))];
+    // 這裡改用 allRecords 來產生建議，確保即使篩選後也能看到所有店家
+    const sourceRecords = allRecords.length > 0 ? allRecords : records;
+    const uniqueStores = [...new Set(sourceRecords.map(r => r.store).filter(Boolean))];
+    const uniqueItems = [...new Set(sourceRecords.map(r => r.item).filter(Boolean))];
     
-    // 3. 填入 datalist
+    // 填入 datalist
     document.getElementById('store-list').innerHTML = uniqueStores.map(s => `<option value="${s}">`).join('');
     document.getElementById('item-list').innerHTML = uniqueItems.map(i => `<option value="${i}">`).join('');
     // ------------------------------------------
@@ -237,7 +252,7 @@ function updateRecordList(records) {
     recordCountText.textContent = `${records.length} 筆紀錄`;
     
     if (records.length === 0) {
-        recordList.innerHTML = `<p class="text-center py-10 text-stone-400">目前還沒有紀錄喔！</p>`;
+        recordList.innerHTML = `<p class="text-center py-10 text-stone-400">沒有符合條件的紀錄喔！</p>`;
         return;
     }
 
@@ -332,7 +347,6 @@ window.editDrink = (id, date, store, item, ice, sugar, note) => {
 
 // 匯出功能
 document.getElementById('exportBtn').addEventListener('click', () => {
-    // 取得目前顯示的資料 (利用 applyFilter 的邏輯重新抓一次，或是修改 updateRecordList 讓它存一個全域變數)
     // 這裡為了簡單且準確，我們直接讀取目前的篩選條件來過濾 allRecords
     const startDate = document.getElementById('filterStartDate').value;
     const endDate = document.getElementById('filterEndDate').value;
