@@ -1,9 +1,13 @@
-const CACHE_NAME = 'drink-tracker-v2';
+const CACHE_NAME = 'drink-tracker-v3';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
     './style.css',
-    './script.js',
+    './js/app.js',
+    './js/firebase.js',
+    './js/ui.js',
+    './js/utils.js',
+    './js/chart.js',
     './favicon.svg',
     'https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js'
 ];
@@ -18,6 +22,9 @@ self.addEventListener('install', (event) => {
 
 // 攔截網路請求：網路優先 (Network First)
 self.addEventListener('fetch', (event) => {
+    // 忽略非 http/https 的請求 (例如 chrome-extension)
+    if (!event.request.url.startsWith('http')) return;
+
     // 忽略 Firebase 或其他 API 請求 (讓它們保持即時連線)
     if (event.request.url.includes('firebase') || event.request.url.includes('googleapis')) {
         return;
@@ -26,7 +33,6 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
         fetch(event.request)
             .then((response) => {
-                // 如果抓取成功，順便更新快取
                 const responseClone = response.clone();
                 caches.open(CACHE_NAME).then((cache) => {
                     cache.put(event.request, responseClone);
@@ -34,7 +40,6 @@ self.addEventListener('fetch', (event) => {
                 return response;
             })
             .catch(() => {
-                // 網路斷線時，才使用快取
                 return caches.match(event.request);
             })
     );
