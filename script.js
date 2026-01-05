@@ -24,6 +24,7 @@ let currentUser = null;
 let unsubscribe = null; // 用來取消監聽
 let editingId = null; // 記錄正在編輯的文件 ID
 let allRecords = []; // 儲存所有紀錄供匯出使用
+let deleteTargetId = null; // 暫存要刪除的 ID
 
 // 檢查並啟動 Firebase
 if (!firebaseConfig.apiKey) {
@@ -82,7 +83,6 @@ function initAuth() {
 
 // 監聽資料庫 (只監聽自己的資料)
 function startListening(uid) {
-    // 查詢條件：依時間排序，且 uid 必須等於當前使用者
     const q = query(
         drinksCollection, 
         where("uid", "==", uid),
@@ -90,16 +90,13 @@ function startListening(uid) {
     );
     
     unsubscribe = onSnapshot(q, (snapshot) => {
-        // 儲存原始資料
         allRecords = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
-        // 載入後預設執行一次篩選 (顯示全部)
         applyFilter();
     }, (error) => {
         console.error("讀取資料失敗:", error);
-        // 如果是因為剛建立索引還沒好，通常不用報錯給使用者，Firestore 會自動處理
         if (error.code !== 'failed-precondition') {
              showMessage("讀取資料失敗", "error");
         }
@@ -107,7 +104,7 @@ function startListening(uid) {
 }
 
 // ----------------------------------------------------------- 
-// UI 互動邏輯 (移到最上方確保先執行)
+// UI 互動邏輯
 // ----------------------------------------------------------- 
 document.getElementById('date').valueAsDate = new Date();
 
@@ -128,11 +125,71 @@ function setupOptions(containerId, hiddenInputId) {
 
 setupOptions('iceOptions', 'iceValue');
 setupOptions('sugarOptions', 'sugarValue');
-// ----------------------------------------------------------- 
 
+// ----------------------------------------------------------- 
+// 刪除確認 Modal 邏輯
+// ----------------------------------------------------------- 
+window.deleteDrink = (id) => {
+    deleteTargetId = id;
+    const modal = document.getElementById('deleteModal');
+    modal.classList.remove('hidden');
+};
+
+window.closeDeleteModal = () => {
+    deleteTargetId = null;
+    document.getElementById('deleteModal').classList.add('hidden');
+};
+
+document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+    if (!deleteTargetId) return;
+    
+    const modal = document.getElementById('deleteModal');
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = "刪除中...";
+
+    try {
+        await deleteDoc(doc(db, "drinks", deleteTargetId));
+        showMessage('紀錄已刪除 🗑️');
+        closeDeleteModal();
+    } catch (error) {
+        showMessage('刪除失敗：' + error.message, 'error');
+    } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = "刪除它";
+    }
+});
+
+// ----------------------------------------------------------- 
+// 快速帶入邏輯
+// ----------------------------------------------------------- 
+window.quickFill = (store, item, ice, sugar, note) => {
+    document.getElementById('store').value = store;
+    document.getElementById('item').value = item;
+    if(note) document.getElementById('note').value = note;
+
+    // 觸發冰塊甜度按鈕
+    document.getElementById('iceValue').value = ice;
+    document.querySelectorAll('#iceOptions button').forEach(btn => {
+        if(btn.dataset.value === ice) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+
+    document.getElementById('sugarValue').value = sugar;
+    document.querySelectorAll('#sugarOptions button').forEach(btn => {
+        if(btn.dataset.value === sugar) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+
+    showMessage('已帶入餐點，確認日期後即可收藏！✨', 'success');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// ----------------------------------------------------------- 
 // 篩選邏輯
+// ----------------------------------------------------------- 
 function applyFilter() {
-    // 防呆：如果尚未讀取到資料，則不執行
     if (!allRecords) return;
 
     const startDate = document.getElementById('filterStartDate').value;
@@ -140,34 +197,23 @@ function applyFilter() {
 
     let filtered = allRecords;
 
-    if (startDate) {
-        filtered = filtered.filter(r => r.date >= startDate);
-    }
-    if (endDate) {
-        filtered = filtered.filter(r => r.date <= endDate);
-    }
+    if (startDate) filtered = filtered.filter(r => r.date >= startDate);
+    if (endDate) filtered = filtered.filter(r => r.date <= endDate);
 
-    // 更新列表顯示
     updateRecordList(filtered);
 }
 
-// 綁定篩選器事件
 const filterStartInput = document.getElementById('filterStartDate');
 const filterEndInput = document.getElementById('filterEndDate');
 
 if (filterStartInput && filterEndInput) {
-    // 改用 'input' 事件，反應更即時
-    filterStartInput.addEventListener('input', () => {
-        console.log("Start Date changed:", filterStartInput.value);
-        applyFilter();
-    });
-    filterEndInput.addEventListener('input', () => {
-        console.log("End Date changed:", filterEndInput.value);
-        applyFilter();
-    });
+    filterStartInput.addEventListener('input', applyFilter);
+    filterEndInput.addEventListener('input', applyFilter);
 }
 
+// ----------------------------------------------------------- 
 // 表單提交
+// ----------------------------------------------------------- 
 const drinkForm = document.getElementById('drinkForm');
 const submitBtn = document.getElementById('submitBtn');
 
@@ -182,7 +228,7 @@ drinkForm.addEventListener('submit', async (e) => {
     submitBtn.textContent = editingId ? "更新中..." : "紀錄中...";
 
     const drinkData = {
-        uid: currentUser.uid, // 重要：寫入使用者 ID
+        uid: currentUser.uid,
         date: document.getElementById('date').value,
         store: document.getElementById('store').value,
         item: document.getElementById('item').value,
@@ -201,7 +247,6 @@ drinkForm.addEventListener('submit', async (e) => {
 
     try {
         if (editingId) {
-            // 更新現有資料
             await updateDoc(doc(db, "drinks", editingId), drinkData);
             showMessage('紀錄已更新！✨');
             editingId = null;
@@ -209,7 +254,6 @@ drinkForm.addEventListener('submit', async (e) => {
             submitBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
             submitBtn.classList.add('bg-orange-500', 'hover:bg-orange-600');
         } else {
-            // 新增資料
             await addDoc(drinksCollection, drinkData);
             showMessage('成功紀錄一杯美味！✨');
         }
@@ -238,16 +282,37 @@ function updateRecordList(records) {
     const recordList = document.getElementById('recordList');
     const recordCountText = document.getElementById('recordCount');
     
-    // --- 新增：自動更新建議清單 (Autocomplete) ---
-    // 這裡改用 allRecords 來產生建議，確保即使篩選後也能看到所有店家
-    const sourceRecords = allRecords.length > 0 ? allRecords : records;
-    const uniqueStores = [...new Set(sourceRecords.map(r => r.store).filter(Boolean))];
-    const uniqueItems = [...new Set(sourceRecords.map(r => r.item).filter(Boolean))];
+    // --- 更新最近常點 (Quick Order) ---
+    const quickOrderList = document.getElementById('quickOrderList');
+    const quickOrderSection = document.getElementById('quickOrderSection');
     
+    const combos = new Map();
+    const sourceData = allRecords.length > 0 ? allRecords : records;
+    
+    sourceData.forEach(r => {
+        const key = `${r.store}-${r.item}-${r.ice}-${r.sugar}`;
+        if (!combos.has(key)) combos.set(key, r);
+    });
+
+    const recentCombos = Array.from(combos.values()).slice(0, 6);
+
+    if (recentCombos.length > 0) {
+        quickOrderSection.classList.remove('hidden');
+        quickOrderList.innerHTML = recentCombos.map(r => `
+            <button onclick="quickFill('${r.store}', '${r.item}', '${r.ice}', '${r.sugar}', '${r.note || ''}')" 
+                class="text-xs font-bold bg-orange-50 text-orange-700 border border-orange-100 px-3 py-2 rounded-xl hover:bg-orange-100 hover:scale-105 transition-all">
+                ${r.store} · ${r.item} <span class="opacity-60">(${r.ice}/${r.sugar})</span>
+            </button>
+        `).join('');
+    } else {
+        quickOrderSection.classList.add('hidden');
+    }
+
     // 填入 datalist
+    const uniqueStores = [...new Set(sourceData.map(r => r.store).filter(Boolean))];
+    const uniqueItems = [...new Set(sourceData.map(r => r.item).filter(Boolean))];
     document.getElementById('store-list').innerHTML = uniqueStores.map(s => `<option value="${s}">`).join('');
     document.getElementById('item-list').innerHTML = uniqueItems.map(i => `<option value="${i}">`).join('');
-    // ------------------------------------------
 
     recordCountText.textContent = `${records.length} 筆紀錄`;
     
@@ -270,26 +335,20 @@ function updateRecordList(records) {
             ${r.note ? `<div class="pt-3 border-t border-orange-100/50 text-sm text-stone-500 italic"># ${r.note}</div>` : ''}
             
             <div class="mt-4 flex justify-end gap-2">
-                 <!-- 編輯按鈕 -->
                 <button onclick="editDrink('${r.id}', '${r.date}', '${r.store}', '${r.item}', '${r.ice}', '${r.sugar}', '${r.note || ''}')" 
-                    class="text-blue-300 hover:text-blue-500 p-2 rounded-full hover:bg-blue-50 transition-all"
-                    title="編輯">
+                    class="text-blue-300 hover:text-blue-500 p-2 rounded-full hover:bg-blue-50 transition-all" title="編輯">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                 </button>
-                <!-- 刪除按鈕 -->
                 <button onclick="deleteDrink('${r.id}')" 
-                    class="text-red-300 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-all"
-                    title="刪除">
+                    class="text-red-300 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-all" title="刪除">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
                 </button>
-                <!-- 分享按鈕 -->
                 <button onclick="shareDrink('${r.store}', '${r.item}', '${r.ice}', '${r.sugar}', '${r.note || ''}')" 
-                    class="text-orange-300 hover:text-orange-500 p-2 rounded-full hover:bg-orange-50 transition-all"
-                    title="分享這杯">
+                    class="text-orange-300 hover:text-orange-500 p-2 rounded-full hover:bg-orange-50 transition-all" title="分享這杯">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                     </svg>
@@ -299,29 +358,14 @@ function updateRecordList(records) {
     `).join('');
 }
 
-// 刪除功能
-window.deleteDrink = async (id) => {
-    if (confirm('確定要刪除這筆紀錄嗎？此動作無法復原。')) {
-        try {
-            await deleteDoc(doc(db, "drinks", id));
-            showMessage('紀錄已刪除 🗑️');
-        } catch (error) {
-            showMessage('刪除失敗：' + error.message, 'error');
-        }
-    }
-};
-
 // 編輯功能
 window.editDrink = (id, date, store, item, ice, sugar, note) => {
-    editingId = id; // 設定正在編輯的 ID
-    
-    // 填回表單
+    editingId = id;
     document.getElementById('date').value = date;
     document.getElementById('store').value = store;
     document.getElementById('item').value = item;
     document.getElementById('note').value = note;
     
-    // 處理按鈕選取狀態
     document.getElementById('iceValue').value = ice;
     document.querySelectorAll('#iceOptions button').forEach(btn => {
         if(btn.dataset.value === ice) btn.classList.add('active');
@@ -334,20 +378,17 @@ window.editDrink = (id, date, store, item, ice, sugar, note) => {
         else btn.classList.remove('active');
     });
 
-    // 改變按鈕狀態提示使用者
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.textContent = "更新紀錄";
     submitBtn.classList.remove('bg-orange-500', 'hover:bg-orange-600');
     submitBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
 
-    // 捲動到頂部讓使用者看到表單
     window.scrollTo({ top: 0, behavior: 'smooth' });
     showMessage('正在編輯紀錄，修改完請按更新按鈕', 'success');
 };
 
 // 匯出功能
 document.getElementById('exportBtn').addEventListener('click', () => {
-    // 這裡為了簡單且準確，我們直接讀取目前的篩選條件來過濾 allRecords
     const startDate = document.getElementById('filterStartDate').value;
     const endDate = document.getElementById('filterEndDate').value;
     
@@ -360,7 +401,6 @@ document.getElementById('exportBtn').addEventListener('click', () => {
         return;
     }
 
-    // 整理資料格式
     const exportData = recordsToExport.map(r => ({
         '日期': r.date,
         '店家': r.store,
@@ -370,26 +410,20 @@ document.getElementById('exportBtn').addEventListener('click', () => {
         '備註': r.note || ''
     }));
 
-    // 建立工作表
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "飲料紀錄");
 
-    // --- 產生智慧檔名 ---
     const userName = currentUser ? (currentUser.displayName || 'User') : 'User';
-    
-    // 找出匯出資料的日期範圍
     const dates = recordsToExport.map(r => r.date).filter(Boolean).sort();
     const rangeStart = dates[0];
     const rangeEnd = dates[dates.length - 1];
-    
     const fileName = `${userName}_飲料紀錄_${rangeStart}_${rangeEnd}.xlsx`;
 
-    // 下載檔案
     XLSX.writeFile(wb, fileName);
 });
 
-// 分享功能 (掛載到 window 以便 onclick 呼叫)
+// 分享功能
 window.shareDrink = async (store, item, ice, sugar, note) => {
     const shareData = {
         title: '喝飲料囉！',
@@ -401,7 +435,6 @@ window.shareDrink = async (store, item, ice, sugar, note) => {
         if (navigator.share) {
             await navigator.share(shareData);
         } else {
-            // 電腦版或不支援 Web Share 的備案：複製文字
             await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
             alert('已複製分享文字到剪貼簿！');
         }
