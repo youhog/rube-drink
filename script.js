@@ -269,7 +269,7 @@ function updateRecordList(records) {
             </div>
             ${r.note ? `<div class="pt-3 border-t border-orange-100/50 text-sm text-stone-500 italic"># ${r.note}</div>` : ''}
             
-            <div class="absolute bottom-4 right-4 flex gap-2">
+            <div class="mt-4 flex justify-end gap-2">
                  <!-- 編輯按鈕 -->
                 <button onclick="editDrink('${r.id}', '${r.date}', '${r.store}', '${r.item}', '${r.ice}', '${r.sugar}', '${r.note || ''}')" 
                     class="text-blue-300 hover:text-blue-500 p-2 rounded-full hover:bg-blue-50 transition-all"
