@@ -81,6 +81,31 @@ function initAuth() {
 }
 
 // 監聽資料庫 (只監聽自己的資料)
+function startListening(uid) {
+    // 查詢條件：依時間排序，且 uid 必須等於當前使用者
+    const q = query(
+        drinksCollection, 
+        where("uid", "==", uid),
+        orderBy("timestamp", "desc")
+    );
+    
+    unsubscribe = onSnapshot(q, (snapshot) => {
+        const records = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        updateRecordList(records);
+    }, (error) => {
+        console.error("讀取資料失敗:", error);
+        // 如果是因為剛建立索引還沒好，通常不用報錯給使用者，Firestore 會自動處理
+        if (error.code !== 'failed-precondition') {
+             showMessage("讀取資料失敗", "error");
+        }
+    });
+}
+
+// UI 互動邏輯
+document.getElementById('date').valueAsDate = new Date();
 const drinkForm = document.getElementById('drinkForm');
 const submitBtn = document.getElementById('submitBtn');
 
