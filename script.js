@@ -191,17 +191,47 @@ function updateRecordList(records) {
     }
 
     recordList.innerHTML = records.map(r => `
-        <div class="border border-orange-100 bg-orange-50/20 p-5 rounded-2xl transition-all hover:bg-white hover:shadow-md">
+        <div class="border border-orange-100 bg-orange-50/20 p-5 rounded-2xl transition-all hover:bg-white hover:shadow-md group relative">
             <div class="flex justify-between items-start mb-2">
                 <span class="text-[10px] font-black tracking-tighter text-orange-400 bg-white border border-orange-100 px-2 py-0.5 rounded-full uppercase">${r.date}</span>
                 <span class="text-sm font-bold text-stone-500">${r.store}</span>
             </div>
             <div class="text-lg font-black text-stone-800 mb-3">${r.item}</div>
-            <div class="flex gap-2 text-xs">
+            <div class="flex gap-2 text-xs mb-3">
                 <span class="bg-orange-100 text-orange-700 font-bold px-3 py-1 rounded-full">❄️ ${r.ice}</span>
                 <span class="bg-amber-100 text-amber-700 font-bold px-3 py-1 rounded-full">🍯 ${r.sugar}</span>
             </div>
-            ${r.note ? `<div class="mt-4 pt-3 border-t border-orange-100/50 text-sm text-stone-500 italic"># ${r.note}</div>` : ''}
+            ${r.note ? `<div class="pt-3 border-t border-orange-100/50 text-sm text-stone-500 italic"># ${r.note}</div>` : ''}
+            
+            <!-- 分享按鈕 -->
+            <button onclick="shareDrink('${r.store}', '${r.item}', '${r.ice}', '${r.sugar}', '${r.note || ''}')" 
+                class="absolute bottom-4 right-4 text-orange-300 hover:text-orange-500 p-2 rounded-full hover:bg-orange-50 transition-all"
+                title="分享這杯">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                </svg>
+            </button>
         </div> 
     `).join('');
 }
+
+// 分享功能 (掛載到 window 以便 onclick 呼叫)
+window.shareDrink = async (store, item, ice, sugar, note) => {
+    const shareData = {
+        title: '喝飲料囉！',
+        text: `🥤 我在 ${store} 喝了 ${item} (${ice}/${sugar})！\n${note ? `📝 ${note}\n` : ''}\n快來一起紀錄 👉`,
+        url: window.location.href
+    };
+
+    try {
+        if (navigator.share) {
+            await navigator.share(shareData);
+        } else {
+            // 電腦版或不支援 Web Share 的備案：複製文字
+            await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
+            alert('已複製分享文字到剪貼簿！');
+        }
+    } catch (err) {
+        console.log('分享取消或失敗', err);
+    }
+};
