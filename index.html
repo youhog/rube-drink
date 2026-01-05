@@ -10,6 +10,7 @@
     <meta name="theme-color" content="#fffaf0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css">
     <script>
         if ('serviceWorker' in navigator) {
@@ -125,6 +126,14 @@
                 <h3 class="text-sm font-bold text-stone-400 mb-3 ml-1">最近常點 (點擊帶入)</h3>
                 <div id="quickOrderList" class="flex flex-wrap gap-2"></div>
             </div>
+
+            <!-- 統計圖表 -->
+            <div id="chartSection" class="mt-8 pt-6 border-t border-orange-50 hidden">
+                <h3 class="text-sm font-bold text-stone-400 mb-3 ml-1">最愛店家 TOP 5</h3>
+                <div class="relative h-48 w-full">
+                    <canvas id="storeChart"></canvas>
+                </div>
+            </div>
         </div>
 
         <!-- 提示訊息 -->
@@ -195,6 +204,6 @@
     <!-- 載入環境變數 (由 GitHub Actions 產生，本地開發可忽略 404) -->
     <script src="firebase-env.js" onerror="console.log('Local dev mode: No env file')"></script>
     <!-- 載入邏輯 -->
-    <script type="module" src="script.js"></script>
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>
