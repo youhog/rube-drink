@@ -1,294 +1,148 @@
-<!doctype html>
-<html lang="zh-TW" class="h-full">
- <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>測試網頁</title>
-  <script src="/_sdk/element_sdk.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-        body {
-            box-sizing: border-box;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .fade-in {
-            animation: fadeIn 0.6s ease-out;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
-        .pulse-animation {
-            animation: pulse 2s infinite;
-        }
-    </style>
-  <style>@view-transition { navigation: auto; }</style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
- </head>
- <body class="h-full">
-  <div id="app-wrapper" class="h-full w-full overflow-auto">
-   <div class="min-h-full flex flex-col items-center justify-center p-8">
-    <div class="max-w-2xl w-full fade-in"><!-- Header -->
-     <div class="text-center mb-12">
-      <h1 id="page-title" class="text-6xl font-bold mb-4">測試網頁</h1>
-      <p id="welcome-message" class="text-xl">歡迎來到測試頁面！</p>
-     </div><!-- Interactive Card -->
-     <div id="interactive-card" class="rounded-2xl p-8 shadow-xl mb-8 transition-all duration-300 hover:shadow-2xl">
-      <h2 class="text-3xl font-semibold mb-6">互動測試區</h2><!-- Counter -->
-      <div class="mb-8">
-       <div class="flex items-center justify-between mb-4"><span class="text-lg font-medium">計數器：</span> <span id="counter" class="text-4xl font-bold">0</span>
-       </div><button id="increment-btn" class="w-full rounded-lg px-6 py-3 font-semibold transition-all duration-200 transform hover:scale-105"> 點擊增加 </button>
-      </div><!-- Input Test -->
-      <div class="mb-8"><label for="test-input" class="block text-lg font-medium mb-2">輸入測試：</label> <input type="text" id="test-input" class="w-full px-4 py-3 rounded-lg border-2 focus:outline-none focus:ring-2 transition-all" placeholder="在這裡輸入文字...">
-       <p id="input-feedback" class="mt-2 text-sm"></p>
-      </div><!-- Toggle Test -->
-      <div class="flex items-center justify-between"><span class="text-lg font-medium">深色模式：</span> <button id="toggle-btn" class="relative w-16 h-8 rounded-full transition-colors duration-300">
-        <div id="toggle-indicator" class="absolute top-1 left-1 w-6 h-6 rounded-full bg-white transition-transform duration-300"></div></button>
-      </div>
-     </div><!-- Status Card -->
-     <div id="status-card" class="rounded-2xl p-6 text-center pulse-animation">
-      <div class="text-5xl mb-2">
-       ✅
-      </div>
-      <p id="status-text" class="text-lg font-medium">所有功能正常運作</p>
-     </div>
-    </div>
-   </div>
-  </div>
-  <script>
-        const defaultConfig = {
-            background_color: '#0f172a',
-            card_color: '#1e293b',
-            text_color: '#f1f5f9',
-            primary_button_color: '#3b82f6',
-            secondary_button_color: '#10b981',
-            page_title: '測試網頁',
-            welcome_message: '歡迎來到測試頁面！',
-            button_text: '點擊增加',
-            font_family: 'system-ui',
-            font_size: 16
-        };
-
-        const lightModeColors = {
-            background_color: '#f8fafc',
-            card_color: '#ffffff',
-            text_color: '#1e293b',
-            primary_button_color: '#3b82f6',
-            secondary_button_color: '#10b981'
-        };
-
-        let counter = 0;
-        let darkMode = true;
-
-        async function onConfigChange(config) {
-            const appWrapper = document.getElementById('app-wrapper');
-            const interactiveCard = document.getElementById('interactive-card');
-            const pageTitle = document.getElementById('page-title');
-            const welcomeMessage = document.getElementById('welcome-message');
-            const incrementBtn = document.getElementById('increment-btn');
-            const statusCard = document.getElementById('status-card');
-            const statusText = document.getElementById('status-text');
-            const counterElement = document.getElementById('counter');
-            const testInput = document.getElementById('test-input');
-            const inputFeedback = document.getElementById('input-feedback');
-            const toggleBtn = document.getElementById('toggle-btn');
-            
-            const backgroundColor = config.background_color || defaultConfig.background_color;
-            const cardColor = config.card_color || defaultConfig.card_color;
-            const textColor = config.text_color || defaultConfig.text_color;
-            const primaryButtonColor = config.primary_button_color || defaultConfig.primary_button_color;
-            const secondaryButtonColor = config.secondary_button_color || defaultConfig.secondary_button_color;
-            const fontFamily = config.font_family || defaultConfig.font_family;
-            const fontSize = config.font_size || defaultConfig.font_size;
-            
-            appWrapper.style.backgroundColor = backgroundColor;
-            appWrapper.style.color = textColor;
-            
-            interactiveCard.style.backgroundColor = cardColor;
-            statusCard.style.backgroundColor = cardColor;
-            
-            pageTitle.textContent = config.page_title || defaultConfig.page_title;
-            pageTitle.style.fontFamily = `${fontFamily}, system-ui, sans-serif`;
-            pageTitle.style.fontSize = `${fontSize * 3.75}px`;
-            
-            welcomeMessage.textContent = config.welcome_message || defaultConfig.welcome_message;
-            welcomeMessage.style.fontFamily = `${fontFamily}, system-ui, sans-serif`;
-            welcomeMessage.style.fontSize = `${fontSize * 1.25}px`;
-            
-            incrementBtn.textContent = config.button_text || defaultConfig.button_text;
-            incrementBtn.style.backgroundColor = primaryButtonColor;
-            incrementBtn.style.color = textColor;
-            incrementBtn.style.fontFamily = `${fontFamily}, system-ui, sans-serif`;
-            incrementBtn.style.fontSize = `${fontSize}px`;
-            
-            const allText = [
-                interactiveCard.querySelector('h2'),
-                ...interactiveCard.querySelectorAll('span'),
-                ...interactiveCard.querySelectorAll('label'),
-                statusText
-            ];
-            
-            allText.forEach(el => {
-                if (el) {
-                    el.style.fontFamily = `${fontFamily}, system-ui, sans-serif`;
-                    el.style.color = textColor;
-                }
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>喝飲料囉</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="favicon.svg">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#fffaf0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('SW registered!', reg.scope))
+                    .catch(err => console.log('SW failed:', err));
             });
-            
-            counterElement.style.color = primaryButtonColor;
-            counterElement.style.fontSize = `${fontSize * 2.5}px`;
-            
-            testInput.style.backgroundColor = backgroundColor;
-            testInput.style.borderColor = primaryButtonColor;
-            testInput.style.color = textColor;
-            testInput.style.fontFamily = `${fontFamily}, system-ui, sans-serif`;
-            testInput.style.fontSize = `${fontSize}px`;
-            
-            inputFeedback.style.color = secondaryButtonColor;
-            inputFeedback.style.fontFamily = `${fontFamily}, system-ui, sans-serif`;
-            inputFeedback.style.fontSize = `${fontSize * 0.875}px`;
-            
-            toggleBtn.style.backgroundColor = darkMode ? secondaryButtonColor : '#64748b';
-            
-            statusText.style.fontSize = `${fontSize * 1.125}px`;
-        }
-
-        if (window.elementSdk) {
-            window.elementSdk.init({
-                defaultConfig,
-                onConfigChange,
-                mapToCapabilities: (config) => ({
-                    recolorables: [
-                        {
-                            get: () => config.background_color || defaultConfig.background_color,
-                            set: (value) => {
-                                window.elementSdk.config.background_color = value;
-                                window.elementSdk.setConfig({ background_color: value });
-                            }
-                        },
-                        {
-                            get: () => config.card_color || defaultConfig.card_color,
-                            set: (value) => {
-                                window.elementSdk.config.card_color = value;
-                                window.elementSdk.setConfig({ card_color: value });
-                            }
-                        },
-                        {
-                            get: () => config.text_color || defaultConfig.text_color,
-                            set: (value) => {
-                                window.elementSdk.config.text_color = value;
-                                window.elementSdk.setConfig({ text_color: value });
-                            }
-                        },
-                        {
-                            get: () => config.primary_button_color || defaultConfig.primary_button_color,
-                            set: (value) => {
-                                window.elementSdk.config.primary_button_color = value;
-                                window.elementSdk.setConfig({ primary_button_color: value });
-                            }
-                        },
-                        {
-                            get: () => config.secondary_button_color || defaultConfig.secondary_button_color,
-                            set: (value) => {
-                                window.elementSdk.config.secondary_button_color = value;
-                                window.elementSdk.setConfig({ secondary_button_color: value });
-                            }
-                        }
-                    ],
-                    borderables: [],
-                    fontEditable: {
-                        get: () => window.elementSdk.config.font_family || defaultConfig.font_family,
-                        set: (value) => {
-                            window.elementSdk.config.font_family = value;
-                            window.elementSdk.setConfig({ font_family: value });
-                        }
-                    },
-                    fontSizeable: {
-                        get: () => window.elementSdk.config.font_size || defaultConfig.font_size,
-                        set: (value) => {
-                            window.elementSdk.config.font_size = value;
-                            window.elementSdk.setConfig({ font_size: value });
-                        }
-                    }
-                }),
-                mapToEditPanelValues: (config) => new Map([
-                    ['page_title', config.page_title || defaultConfig.page_title],
-                    ['welcome_message', config.welcome_message || defaultConfig.welcome_message],
-                    ['button_text', config.button_text || defaultConfig.button_text]
-                ])
-            });
-        }
-
-        // Counter functionality
-        document.getElementById('increment-btn').addEventListener('click', () => {
-            counter++;
-            document.getElementById('counter').textContent = counter;
-        });
-
-        // Input feedback
-        document.getElementById('test-input').addEventListener('input', (e) => {
-            const value = e.target.value;
-            const feedback = document.getElementById('input-feedback');
-            if (value) {
-                feedback.textContent = `您輸入了 ${value.length} 個字元`;
-            } else {
-                feedback.textContent = '';
-            }
-        });
-
-        // Dark mode toggle
-        document.getElementById('toggle-btn').addEventListener('click', () => {
-            darkMode = !darkMode;
-            const indicator = document.getElementById('toggle-indicator');
-            const toggleBtn = document.getElementById('toggle-btn');
-            
-            // Apply color scheme based on mode
-            if (darkMode) {
-                indicator.style.transform = 'translateX(32px)';
-                toggleBtn.style.backgroundColor = lightModeColors.secondary_button_color;
-                // Switch to dark mode colors
-                if (window.elementSdk) {
-                    window.elementSdk.setConfig({
-                        background_color: defaultConfig.background_color,
-                        card_color: defaultConfig.card_color,
-                        text_color: defaultConfig.text_color
-                    });
-                } else {
-                    onConfigChange(defaultConfig);
-                }
-            } else {
-                indicator.style.transform = 'translateX(0)';
-                toggleBtn.style.backgroundColor = '#64748b';
-                // Switch to light mode colors
-                if (window.elementSdk) {
-                    window.elementSdk.setConfig({
-                        background_color: lightModeColors.background_color,
-                        card_color: lightModeColors.card_color,
-                        text_color: lightModeColors.text_color
-                    });
-                } else {
-                    onConfigChange({...defaultConfig, ...lightModeColors});
-                }
-            }
-        });
-
-        // Initial render
-        onConfigChange(defaultConfig);
-        
-        // Set initial toggle button state
-        const toggleBtn = document.getElementById('toggle-btn');
-        const indicator = document.getElementById('toggle-indicator');
-        if (darkMode) {
-            indicator.style.transform = 'translateX(32px)';
-            toggleBtn.style.backgroundColor = lightModeColors.secondary_button_color;
         }
     </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b7081afb2ee827f',t:'MTc2NzI1NDY3NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</head>
+<body class="p-4 md:p-8 text-stone-800">
+    
+    <!-- 登入畫面 (預設顯示) -->
+    <div id="loginSection" class="fixed inset-0 bg-[#fffaf0] z-50 flex flex-col items-center justify-center p-6">
+        <div class="bg-white p-8 rounded-3xl shadow-xl shadow-orange-100 border border-orange-50 text-center max-w-sm w-full">
+            <div class="bg-orange-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <img src="favicon.svg" class="w-12 h-12" alt="Logo">
+            </div>
+            <h1 class="text-2xl font-black text-orange-900 mb-2">歡迎回來！</h1>
+            <p class="text-stone-500 mb-8">登入以紀錄您的飲料時光</p>
+            
+            <button id="loginBtn" class="w-full bg-white border-2 border-orange-100 hover:bg-orange-50 text-stone-700 font-bold py-3 px-4 rounded-xl flex items-center justify-center transition-all group">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6 mr-3">
+                <span class="group-hover:text-orange-600">使用 Google 帳號登入</span>
+            </button>
+        </div>
+        <p class="mt-8 text-xs text-stone-400 font-bold tracking-widest uppercase">© 2026 Youzi • Drink Tracker</p>
+    </div>
+
+    <!-- 主應用程式 (預設隱藏) -->
+    <div id="appSection" class="max-w-2xl mx-auto hidden">
+        <!-- 表單卡片 -->
+        <div class="bg-white rounded-3xl shadow-xl shadow-orange-100/50 p-6 md:p-8 mb-8 border border-orange-50">
+            <!-- 頂部 User Bar -->
+            <div class="flex items-center justify-between mb-8 pb-6 border-b border-orange-50">
+                <div class="flex items-center">
+                    <img id="userAvatar" src="" class="w-10 h-10 rounded-full border-2 border-orange-200 mr-3" alt="Avatar">
+                    <div>
+                        <h1 class="text-lg font-black text-orange-900 leading-tight">喝飲料囉</h1>
+                        <p id="userName" class="text-xs text-orange-600/70 font-bold">載入中...</p>
+                    </div>
+                </div>
+                <button id="logoutBtn" class="text-xs font-bold text-stone-400 hover:text-red-500 bg-stone-50 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors">
+                    登出
+                </button>
+            </div>
+
+            <form id="drinkForm" class="space-y-6">
+                <!-- 日期 -->
+                <div>
+                    <label class="block text-sm font-bold text-orange-900 mb-2 ml-1">享用日期</label>
+                    <input type="date" id="date" class="w-full px-4 py-3 bg-orange-50/30 border border-orange-100 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 outline-none transition" required>
+                </div>
+
+                <!-- 店家與品項 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-orange-900 mb-2 ml-1">購買店家</label>
+                        <input type="text" id="store" placeholder="例如：可不可熟成紅茶" class="w-full px-4 py-3 bg-orange-50/30 border border-orange-100 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 outline-none transition" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-orange-900 mb-2 ml-1">飲料品項</label>
+                        <input type="text" id="item" placeholder="例如：胭脂紅茶" class="w-full px-4 py-3 bg-orange-50/30 border border-orange-100 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 outline-none transition" required>
+                    </div>
+                </div>
+
+                <!-- 冰塊選擇 -->
+                <div>
+                    <label class="block text-sm font-bold text-orange-900 mb-3 ml-1">冰塊量</label>
+                    <div class="flex flex-wrap gap-2.5" id="iceOptions">
+                        <button type="button" data-value="溫" class="option-btn px-5 py-2.5 border rounded-2xl text-sm font-medium transition-all duration-200">溫</button>
+                        <button type="button" data-value="去冰" class="option-btn px-5 py-2.5 border rounded-2xl text-sm font-medium transition-all duration-200">去冰</button>
+                        <button type="button" data-value="微冰" class="option-btn px-5 py-2.5 border rounded-2xl text-sm font-medium transition-all duration-200">微冰</button>
+                        <button type="button" data-value="少冰" class="option-btn px-5 py-2.5 border rounded-2xl text-sm font-medium transition-all duration-200">少冰</button>
+                        <button type="button" data-value="正常" class="option-btn px-5 py-2.5 border rounded-2xl text-sm font-medium transition-all duration-200">正常</button>
+                    </div>
+                    <input type="hidden" id="iceValue" required>
+                </div>
+
+                <!-- 甜度選擇 -->
+                <div>
+                    <label class="block text-sm font-bold text-orange-900 mb-3 ml-1">甜度</label>
+                    <div class="flex flex-wrap gap-2.5" id="sugarOptions">
+                        <button type="button" data-value="無糖" class="option-btn px-5 py-2.5 border rounded-2xl text-sm font-medium transition-all duration-200">無糖</button>
+                        <button type="button" data-value="一分糖" class="option-btn px-5 py-2.5 border rounded-2xl text-sm font-medium transition-all duration-200">一分糖</button>
+                        <button type="button" data-value="兩分糖" class="option-btn px-5 py-2.5 border rounded-2xl text-sm font-medium transition-all duration-200">兩分糖</button>
+                        <button type="button" data-value="微糖" class="option-btn px-5 py-2.5 border rounded-2xl text-sm font-medium transition-all duration-200">微糖</button>
+                        <button type="button" data-value="半糖" class="option-btn px-5 py-2.5 border rounded-2xl text-sm font-medium transition-all duration-200">半糖</button>
+                        <button type="button" data-value="少糖" class="option-btn px-5 py-2.5 border rounded-2xl text-sm font-medium transition-all duration-200">少糖</button>
+                        <button type="button" data-value="正常" class="option-btn px-5 py-2.5 border rounded-2xl text-sm font-medium transition-all duration-200">正常</button>
+                    </div>
+                    <input type="hidden" id="sugarValue" required>
+                </div>
+
+                <!-- 備註 -->
+                <div>
+                    <label class="block text-sm font-bold text-orange-900 mb-2 ml-1">小筆記 (備註)</label>
+                    <textarea id="note" rows="2" placeholder="寫下好喝的秘密，例如：珍珠很Q..." class="w-full px-4 py-3 bg-orange-50/30 border border-orange-100 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 outline-none transition"></textarea>
+                </div>
+
+                <button type="submit" id="submitBtn" class="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl hover:bg-orange-600 active:scale-[0.98] transition-all shadow-lg shadow-orange-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                    收藏這杯紀錄
+                </button>
+            </form>
+        </div>
+
+        <!-- 提示訊息 -->
+        <div id="messageBox" class="hidden mb-6 p-4 rounded-2xl text-center font-bold"></div>
+
+        <!-- 紀錄列表 -->
+        <div class="bg-white rounded-3xl shadow-xl shadow-orange-100/50 p-6 md:p-8 border border-orange-50">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-black text-orange-900">最近喝過什麼？</h2>
+                <span id="recordCount" class="text-xs font-bold bg-orange-100 text-orange-600 px-3 py-1 rounded-full">載入中...</span>
+            </div>
+            <div id="recordList" class="space-y-4">
+                <div class="text-center py-10 animate-pulse">
+                    <p class="text-stone-400">正在連接雲端資料庫...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 頁尾宣告 -->
+        <footer class="mt-12 mb-8 text-center">
+            <p class="text-orange-900/30 text-[10px] font-bold tracking-[0.2em] uppercase">
+                © 2026 Youzi • Drink Tracker • Firebase版
+            </p>
+        </footer>
+    </div>
+
+    <!-- 載入環境變數 (由 GitHub Actions 產生，本地開發可忽略 404) -->
+    <script src="firebase-env.js" onerror="console.log('Local dev mode: No env file')"></script>
+    <!-- 載入邏輯 -->
+    <script type="module" src="script.js"></script>
+</body>
 </html>

@@ -1,0 +1,17 @@
+{
+    "name": "喝飲料囉",
+    "short_name": "喝飲料",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#fffaf0",
+    "theme_color": "#fffaf0",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ]
+}

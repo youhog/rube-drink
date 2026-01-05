@@ -1,0 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+
+body {
+    font-family: 'Noto+Sans+TC', sans-serif;
+    background-color: #fffaf0;
+}
+
+.option-btn {
+    border-color: #fed7aa;
+    color: #9a3412;
+}
+
+.option-btn:hover {
+    background-color: #fff7ed;
+}
+
+.option-btn.active {
+    background-color: #f97316;
+    color: white;
+    border-color: #f97316;
+    box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.2);
+}
