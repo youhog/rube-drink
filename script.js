@@ -107,6 +107,25 @@ function startListening(uid) {
 
 // UI 互動邏輯
 document.getElementById('date').valueAsDate = new Date();
+
+function setupOptions(containerId, hiddenInputId) {
+    const container = document.getElementById(containerId);
+    const hiddenInput = document.getElementById(hiddenInputId);
+    if (!container) return;
+    const buttons = container.querySelectorAll('button');
+
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            buttons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            hiddenInput.value = btn.getAttribute('data-value');
+        });
+    });
+}
+
+setupOptions('iceOptions', 'iceValue');
+setupOptions('sugarOptions', 'sugarValue');
+
 const drinkForm = document.getElementById('drinkForm');
 const submitBtn = document.getElementById('submitBtn');
 
