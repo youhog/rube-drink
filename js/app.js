@@ -161,13 +161,18 @@ function startListening(uid) {
 // 2. 初始化與事件綁定
 // -----------------------------------------------------------
 
-// 初始化 UI
+// 1. 初始化 UI 狀態
 document.getElementById('date').valueAsDate = new Date();
 UI.setupOptions('iceOptions', 'iceValue');
 UI.setupOptions('sugarOptions', 'sugarValue');
+UI.initTheme(); // 初始化主題
 window.closeDeleteModal = closeDeleteModal;
 
-// 綁定按鈕
+// 2. 監聽使用者
+// ... (中略) ...
+
+// 3. 綁定按鈕與輸入事件
+document.getElementById('themeToggle').addEventListener('click', () => UI.toggleTheme());
 document.getElementById('loginBtn').addEventListener('click', () => FB.login());
 document.getElementById('logoutBtn').addEventListener('click', () => FB.logout());
 document.getElementById('drinkForm').addEventListener('submit', handleSubmit);

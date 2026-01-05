@@ -22,20 +22,20 @@
         }
     </script>
 </head>
-<body class="p-4 md:p-8 text-stone-800">
+<body class="p-4 md:p-8 text-stone-800 transition-colors duration-300">
     
     <!-- 登入畫面 (預設顯示) -->
-    <div id="loginSection" class="fixed inset-0 bg-[#fffaf0] z-50 flex flex-col items-center justify-center p-6">
-        <div class="bg-white p-8 rounded-3xl shadow-xl shadow-orange-100 border border-orange-50 text-center max-w-sm w-full">
-            <div class="bg-orange-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+    <div id="loginSection" class="fixed inset-0 bg-[#fffaf0] dark:bg-stone-900 z-50 flex flex-col items-center justify-center p-6">
+        <div class="bg-white dark:bg-stone-800 p-8 rounded-3xl shadow-xl shadow-orange-100 dark:shadow-none border border-orange-50 dark:border-stone-700 text-center max-w-sm w-full">
+            <div class="bg-orange-100 dark:bg-orange-900/30 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <img src="favicon.svg" class="w-12 h-12" alt="Logo">
             </div>
-            <h1 class="text-2xl font-black text-orange-900 mb-2">歡迎回來！</h1>
-            <p class="text-stone-500 mb-8">登入以紀錄您的飲料時光</p>
+            <h1 class="text-2xl font-black text-orange-900 dark:text-orange-100 mb-2">歡迎回來！</h1>
+            <p class="text-stone-500 dark:text-stone-400 mb-8">登入以紀錄您的飲料時光</p>
             
-            <button id="loginBtn" class="w-full bg-white border-2 border-orange-100 hover:bg-orange-50 text-stone-700 font-bold py-3 px-4 rounded-xl flex items-center justify-center transition-all group">
+            <button id="loginBtn" class="w-full bg-white dark:bg-stone-700 border-2 border-orange-100 dark:border-stone-600 hover:bg-orange-50 dark:hover:bg-stone-600 text-stone-700 dark:text-stone-200 font-bold py-3 px-4 rounded-xl flex items-center justify-center transition-all group">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6 mr-3">
-                <span class="group-hover:text-orange-600">使用 Google 帳號登入</span>
+                <span class="group-hover:text-orange-600 dark:group-hover:text-orange-400">使用 Google 帳號登入</span>
             </button>
         </div>
         <p class="mt-8 text-xs text-stone-400 font-bold tracking-widest uppercase">© 2026 Youzi • Drink Tracker</p>
@@ -44,18 +44,22 @@
     <!-- 主應用程式 (預設隱藏) -->
     <div id="appSection" class="max-w-2xl mx-auto hidden">
         <!-- 表單卡片 -->
-        <div class="bg-white rounded-3xl shadow-xl shadow-orange-100/50 p-6 md:p-8 mb-8 border border-orange-50">
+        <div class="bg-white dark:bg-stone-800 rounded-3xl shadow-xl shadow-orange-100/50 dark:shadow-none p-6 md:p-8 mb-8 border border-orange-50 dark:border-stone-700">
             <!-- 頂部 User Bar -->
-            <div class="flex items-center justify-between mb-8 pb-6 border-b border-orange-50">
+            <div class="flex items-center justify-between mb-8 pb-6 border-b border-orange-50 dark:border-stone-700">
                 <div class="flex items-center">
-                    <img id="userAvatar" src="" class="w-10 h-10 rounded-full border-2 border-orange-200 mr-3" alt="Avatar">
+                    <img id="userAvatar" src="" class="w-10 h-10 rounded-full border-2 border-orange-200 dark:border-orange-900 mr-3" alt="Avatar">
                     <div>
-                        <h1 class="text-lg font-black text-orange-900 leading-tight">喝飲料囉</h1>
-                        <p id="userName" class="text-xs text-orange-600/70 font-bold">載入中...</p>
+                        <h1 class="text-lg font-black text-orange-900 dark:text-orange-100 leading-tight">喝飲料囉</h1>
+                        <p id="userName" class="text-xs text-orange-600/70 dark:text-orange-400 font-bold">載入中...</p>
                     </div>
                 </div>
-                <div class="flex items-center">
-                    <button id="logoutBtn" class="text-xs font-bold text-stone-400 hover:text-red-500 bg-stone-50 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors">
+                <div class="flex items-center gap-2">
+                    <button id="themeToggle" class="p-2 bg-stone-100 dark:bg-stone-700 text-stone-500 dark:text-stone-300 rounded-lg transition-colors hover:bg-stone-200 dark:hover:bg-stone-600" title="切換深淺色">
+                        <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M16.071 16.071l.707.707M7.757 7.757l.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" /></svg>
+                        <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                    </button>
+                    <button id="logoutBtn" class="text-xs font-bold text-stone-400 hover:text-red-500 bg-stone-50 dark:bg-stone-700 hover:bg-red-50 dark:hover:bg-red-900/30 px-3 py-2 rounded-lg transition-colors">
                         登出
                     </button>
                 </div>
@@ -65,32 +69,32 @@
                 <!-- 日期與價格 -->
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-bold text-orange-900 mb-2 ml-1">享用日期</label>
-                        <input type="date" id="date" class="w-full px-4 py-3 bg-orange-50/30 border border-orange-100 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 outline-none transition" required>
+                        <label class="block text-sm font-bold text-orange-900 dark:text-orange-100 mb-2 ml-1">享用日期</label>
+                        <input type="date" id="date" class="w-full px-4 py-3 bg-orange-50/30 dark:bg-stone-900/50 border border-orange-100 dark:border-stone-700 dark:text-stone-200 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 outline-none transition" required>
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-orange-900 mb-2 ml-1">價格 (選填)</label>
-                        <input type="number" id="price" placeholder="$" class="w-full px-4 py-3 bg-orange-50/30 border border-orange-100 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 outline-none transition">
+                        <label class="block text-sm font-bold text-orange-900 dark:text-orange-100 mb-2 ml-1">價格 (選填)</label>
+                        <input type="number" id="price" placeholder="$" class="w-full px-4 py-3 bg-orange-50/30 dark:bg-stone-900/50 border border-orange-100 dark:border-stone-700 dark:text-stone-200 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 outline-none transition">
                     </div>
                 </div>
 
                 <!-- 店家與品項 -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-bold text-orange-900 mb-2 ml-1">購買店家</label>
-                        <input type="text" id="store" list="store-list" placeholder="例如：可不可熟成紅茶" class="w-full px-4 py-3 bg-orange-50/30 border border-orange-100 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 outline-none transition" required>
+                        <label class="block text-sm font-bold text-orange-900 dark:text-orange-100 mb-2 ml-1">購買店家</label>
+                        <input type="text" id="store" list="store-list" placeholder="例如：可不可熟成紅茶" class="w-full px-4 py-3 bg-orange-50/30 dark:bg-stone-900/50 border border-orange-100 dark:border-stone-700 dark:text-stone-200 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 outline-none transition" required>
                         <datalist id="store-list"></datalist>
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-orange-900 mb-2 ml-1">飲料品項</label>
-                        <input type="text" id="item" list="item-list" placeholder="例如：胭脂紅茶" class="w-full px-4 py-3 bg-orange-50/30 border border-orange-100 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 outline-none transition" required>
+                        <label class="block text-sm font-bold text-orange-900 dark:text-orange-100 mb-2 ml-1">飲料品項</label>
+                        <input type="text" id="item" list="item-list" placeholder="例如：胭脂紅茶" class="w-full px-4 py-3 bg-orange-50/30 dark:bg-stone-900/50 border border-orange-100 dark:border-stone-700 dark:text-stone-200 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 outline-none transition" required>
                         <datalist id="item-list"></datalist>
                     </div>
                 </div>
 
                 <!-- 冰塊選擇 -->
                 <div>
-                    <label class="block text-sm font-bold text-orange-900 mb-3 ml-1">冰塊量</label>
+                    <label class="block text-sm font-bold text-orange-900 dark:text-orange-100 mb-3 ml-1">冰塊量</label>
                     <div class="flex flex-wrap gap-2.5" id="iceOptions">
                         <button type="button" data-value="溫" class="option-btn px-5 py-2.5 border rounded-2xl text-sm font-medium transition-all duration-200">溫</button>
                         <button type="button" data-value="去冰" class="option-btn px-5 py-2.5 border rounded-2xl text-sm font-medium transition-all duration-200">去冰</button>
@@ -103,7 +107,7 @@
 
                 <!-- 甜度選擇 -->
                 <div>
-                    <label class="block text-sm font-bold text-orange-900 mb-3 ml-1">甜度</label>
+                    <label class="block text-sm font-bold text-orange-900 dark:text-orange-100 mb-3 ml-1">甜度</label>
                     <div class="flex flex-wrap gap-2.5" id="sugarOptions">
                         <button type="button" data-value="無糖" class="option-btn px-5 py-2.5 border rounded-2xl text-sm font-medium transition-all duration-200">無糖</button>
                         <button type="button" data-value="一分糖" class="option-btn px-5 py-2.5 border rounded-2xl text-sm font-medium transition-all duration-200">一分糖</button>
@@ -118,24 +122,24 @@
 
                 <!-- 備註 -->
                 <div>
-                    <label class="block text-sm font-bold text-orange-900 mb-2 ml-1">小筆記 (備註)</label>
-                    <textarea id="note" rows="2" placeholder="寫下好喝的秘密，例如：珍珠很Q..." class="w-full px-4 py-3 bg-orange-50/30 border border-orange-100 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 outline-none transition"></textarea>
+                    <label class="block text-sm font-bold text-orange-900 dark:text-orange-100 mb-2 ml-1">小筆記 (備註)</label>
+                    <textarea id="note" rows="2" placeholder="寫下好喝的秘密，例如：珍珠很Q..." class="w-full px-4 py-3 bg-orange-50/30 dark:bg-stone-900/50 border border-orange-100 dark:border-stone-700 dark:text-stone-200 rounded-xl focus:ring-4 focus:ring-orange-200 focus:border-orange-400 outline-none transition"></textarea>
                 </div>
 
-                <button type="submit" id="submitBtn" class="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl hover:bg-orange-600 active:scale-[0.98] transition-all shadow-lg shadow-orange-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                <button type="submit" id="submitBtn" class="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl hover:bg-orange-600 active:scale-[0.98] transition-all shadow-lg shadow-orange-200 dark:shadow-none disabled:opacity-50 disabled:cursor-not-allowed">
                     收藏這杯紀錄
                 </button>
             </form>
 
             <!-- 最近常點快速按鈕 -->
-            <div id="quickOrderSection" class="mt-8 pt-6 border-t border-orange-50 hidden">
-                <h3 class="text-sm font-bold text-stone-400 mb-3 ml-1">最近常點 (點擊帶入)</h3>
+            <div id="quickOrderSection" class="mt-8 pt-6 border-t border-orange-50 dark:border-stone-700 hidden">
+                <h3 class="text-sm font-bold text-stone-400 dark:text-stone-500 mb-3 ml-1">最近常點 (點擊帶入)</h3>
                 <div id="quickOrderList" class="flex flex-wrap gap-2"></div>
             </div>
 
             <!-- 統計圖表 -->
-            <div id="chartSection" class="mt-8 pt-6 border-t border-orange-50 hidden">
-                <h3 class="text-sm font-bold text-stone-400 mb-3 ml-1">最愛店家 TOP 5</h3>
+            <div id="chartSection" class="mt-8 pt-6 border-t border-orange-50 dark:border-stone-700 hidden">
+                <h3 class="text-sm font-bold text-stone-400 dark:text-stone-500 mb-3 ml-1">最愛店家 TOP 5</h3>
                 <div class="relative h-48 w-full">
                     <canvas id="storeChart"></canvas>
                 </div>
@@ -146,21 +150,21 @@
         <div id="messageBox" class="hidden mb-6 p-4 rounded-2xl text-center font-bold"></div>
 
         <!-- 紀錄列表 -->
-        <div class="bg-white rounded-3xl shadow-xl shadow-orange-100/50 p-6 md:p-8 border border-orange-50">
+        <div class="bg-white dark:bg-stone-800 rounded-3xl shadow-xl shadow-orange-100/50 dark:shadow-none p-6 md:p-8 border border-orange-50 dark:border-stone-700">
             <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                 <div class="flex items-center gap-3">
-                    <h2 class="text-xl font-black text-orange-900">最近喝過什麼？</h2>
-                    <span id="recordCount" class="text-xs font-bold bg-orange-100 text-orange-600 px-3 py-1 rounded-full">載入中...</span>
+                    <h2 class="text-xl font-black text-orange-900 dark:text-orange-100">最近喝過什麼？</h2>
+                    <span id="recordCount" class="text-xs font-bold bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-3 py-1 rounded-full text-center text-nowrap">載入中...</span>
                 </div>
                 
                 <!-- 篩選與匯出工具列 -->
                 <div class="flex flex-col sm:flex-row gap-2">
-                    <div class="flex items-center bg-orange-50 rounded-lg p-1 border border-orange-100">
-                        <input type="date" id="filterStartDate" class="bg-transparent text-xs font-bold text-stone-600 outline-none px-2 py-1 w-28">
+                    <div class="flex items-center bg-orange-50 dark:bg-stone-900/50 rounded-lg p-1 border border-orange-100 dark:border-stone-700">
+                        <input type="date" id="filterStartDate" class="bg-transparent text-xs font-bold text-stone-600 dark:text-stone-300 outline-none px-2 py-1 w-28">
                         <span class="text-orange-300">~</span>
-                        <input type="date" id="filterEndDate" class="bg-transparent text-xs font-bold text-stone-600 outline-none px-2 py-1 w-28">
+                        <input type="date" id="filterEndDate" class="bg-transparent text-xs font-bold text-stone-600 dark:text-stone-300 outline-none px-2 py-1 w-28">
                     </div>
-                    <button id="exportBtn" class="text-xs font-bold text-green-600 hover:text-green-800 bg-green-50 hover:bg-green-100 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-1">
+                    <button id="exportBtn" class="text-xs font-bold text-green-600 dark:text-green-400 hover:text-green-800 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
@@ -170,15 +174,15 @@
             </div>
             <div id="recordList" class="space-y-4">
                 <div class="text-center py-10 animate-pulse">
-                    <p class="text-stone-400">正在連接雲端資料庫...</p>
+                    <p class="text-stone-400 dark:text-stone-500">正在連接雲端資料庫...</p>
                 </div>
             </div>
         </div>
 
         <!-- 頁尾宣告 -->
         <footer class="mt-12 mb-8 text-center">
-            <p class="text-orange-900/30 text-[10px] font-bold tracking-[0.2em] uppercase">
-                © 2026 Youzi • Drink Tracker • Firebase版
+            <p class="text-orange-900/30 dark:text-stone-600 text-[10px] font-bold tracking-[0.2em] uppercase">
+                © 2026 Youzi • Drink Tracker • Firebase模組版
             </p>
         </footer>
     </div>
@@ -186,21 +190,21 @@
     <!-- 自訂刪除確認 Modal -->
     <div id="deleteModal" class="fixed inset-0 z-[60] hidden">
         <!-- 背景遮罩 -->
-        <div class="absolute inset-0 bg-stone-900/30 backdrop-blur-sm transition-opacity" onclick="closeDeleteModal()"></div>
+        <div class="absolute inset-0 bg-stone-900/30 dark:bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeDeleteModal()"></div>
         <!-- 對話框 -->
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-3xl p-6 w-[90%] max-w-sm shadow-2xl shadow-orange-900/20 border border-orange-100 scale-100 transition-transform">
-            <div class="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-stone-800 rounded-3xl p-6 w-[90%] max-w-sm shadow-2xl border border-orange-50 dark:border-stone-700 scale-100 transition-transform">
+            <div class="bg-red-50 dark:bg-red-900/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
             </div>
-            <h3 class="text-xl font-black text-stone-800 text-center mb-2">確定要刪除嗎？</h3>
-            <p class="text-stone-500 text-center text-sm mb-6">這筆美味紀錄將會永遠消失，無法復原喔！</p>
+            <h3 class="text-xl font-black text-stone-800 dark:text-stone-100 text-center mb-2">確定要刪除嗎？</h3>
+            <p class="text-stone-500 dark:text-stone-400 text-center text-sm mb-6">這筆美味紀錄將會永遠消失，無法復原喔！</p>
             <div class="flex gap-3">
-                <button onclick="closeDeleteModal()" class="flex-1 py-3 font-bold text-stone-500 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors">
+                <button onclick="closeDeleteModal()" class="flex-1 py-3 font-bold text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 rounded-xl transition-colors">
                     取消
                 </button>
-                <button id="confirmDeleteBtn" class="flex-1 py-3 font-bold text-white bg-red-500 hover:bg-red-600 rounded-xl shadow-lg shadow-red-200 transition-colors">
+                <button id="confirmDeleteBtn" class="flex-1 py-3 font-bold text-white bg-red-500 hover:bg-red-600 rounded-xl shadow-lg shadow-red-200 dark:shadow-none transition-colors">
                     刪除它
                 </button>
             </div>

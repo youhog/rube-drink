@@ -36,17 +36,38 @@ export function setOptionActive(containerId, value) {
     });
 }
 
-// 渲染列表
+// --- 深色模式處理 ---
+export function initTheme() {
+    const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    setTheme(theme);
+}
+
+export function toggleTheme() {
+    const isDark = document.documentElement.classList.contains('dark');
+    setTheme(isDark ? 'light' : 'dark');
+}
+
+function setTheme(theme) {
+    if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.getElementById('moonIcon').classList.add('hidden');
+        document.getElementById('sunIcon').classList.remove('hidden');
+    } else {
+        document.documentElement.classList.remove('dark');
+        document.getElementById('sunIcon').classList.add('hidden');
+        document.getElementById('moonIcon').classList.remove('hidden');
+    }
+    localStorage.setItem('theme', theme);
+}
+
+// 渲染列表 (加入 dark: class)
 export function renderRecordList(records, handlers) {
     const recordList = document.getElementById('recordList');
     const recordCountText = document.getElementById('recordCount');
     const { onEdit, onDelete, onShare } = handlers;
 
-    // 計算總金額
     const totalAmount = records.reduce((sum, r) => sum + (parseInt(r.price) || 0), 0);
-
-    // 更新計數與總額
-    recordCountText.innerHTML = `${records.length} 筆 · <span class="text-orange-600">$${totalAmount.toLocaleString()}</span>`;
+    recordCountText.innerHTML = `${records.length} 筆 · <span class="text-orange-600 dark:text-orange-400">$${totalAmount.toLocaleString()}</span>`;
     
     if (records.length === 0) {
         recordList.innerHTML = `<p class="text-center py-10 text-stone-400">沒有符合條件的紀錄喔！</p>`;
@@ -54,34 +75,36 @@ export function renderRecordList(records, handlers) {
     }
 
     recordList.innerHTML = records.map(r => `
-        <div class="border border-orange-100 bg-orange-50/20 p-5 rounded-2xl transition-all hover:bg-white hover:shadow-md group relative">
+        <div class="border border-orange-100 dark:border-stone-700 bg-orange-50/20 dark:bg-stone-800/50 p-5 rounded-2xl transition-all hover:bg-white dark:hover:bg-stone-800 hover:shadow-md group relative">
             <div class="flex justify-between items-start mb-2">
-                <span class="text-[10px] font-black tracking-tighter text-orange-400 bg-white border border-orange-100 px-2 py-0.5 rounded-full uppercase">${r.date}</span>
+                <span class="text-[10px] font-black tracking-tighter text-orange-400 bg-white dark:bg-stone-700 border border-orange-100 dark:border-stone-600 px-2 py-0.5 rounded-full uppercase">${r.date}</span>
                 <div class="text-right">
-                    <span class="block text-sm font-bold text-stone-500">${r.store}</span>
-                    ${r.price ? `<span class="text-sm font-black text-orange-600">$${r.price}</span>` : ''}
+                    <span class="block text-sm font-bold text-stone-500 dark:text-stone-400">${r.store}</span>
+                    ${r.price ? `<span class="text-sm font-black text-orange-600 dark:text-orange-400">$${r.price}</span>` : ''}
                 </div>
             </div>
-            <div class="text-lg font-black text-stone-800 mb-3">${r.item}</div>
+            <div class="text-lg font-black text-stone-800 dark:text-stone-100 mb-3">${r.item}</div>
             <div class="flex gap-2 text-xs mb-3">
-                <span class="bg-orange-100 text-orange-700 font-bold px-3 py-1 rounded-full">❄️ ${r.ice}</span>
-                <span class="bg-amber-100 text-amber-700 font-bold px-3 py-1 rounded-full">🍯 ${r.sugar}</span>
+                <span class="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 font-bold px-3 py-1 rounded-full">❄️ ${r.ice}</span>
+                <span class="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 font-bold px-3 py-1 rounded-full">🍯 ${r.sugar}</span>
             </div>
-            ${r.note ? `<div class="pt-3 border-t border-orange-100/50 text-sm text-stone-500 italic"># ${r.note}</div>` : ''}
+            ${r.note ? `<div class="pt-3 border-t border-orange-100/50 dark:border-stone-700 text-sm text-stone-500 dark:text-stone-400 italic"># ${r.note}</div>` : ''}
             
             <div class="mt-4 flex justify-end gap-2">
-                <button data-action="edit" data-id="${r.id}" class="text-blue-300 hover:text-blue-500 p-2 rounded-full hover:bg-blue-50 transition-all">
+                <button data-action="edit" data-id="${r.id}" class="text-blue-300 dark:text-blue-400 hover:text-blue-500 p-2 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                 </button>
-                <button data-action="delete" data-id="${r.id}" class="text-red-300 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-all">
+                <button data-action="delete" data-id="${r.id}" class="text-red-300 dark:text-red-400 hover:text-red-500 p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                 </button>
-                <button data-action="share" data-id="${r.id}" class="text-orange-300 hover:text-orange-500 p-2 rounded-full hover:bg-orange-50 transition-all">
+                <button data-action="share" data-id="${r.id}" class="text-orange-300 dark:text-orange-400 hover:text-orange-500 p-2 rounded-full hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
                 </button>
             </div>
         </div> 
     `).join('');
+
+    // ... (綁定事件部分不變) ...
 
     // 綁定按鈕事件 (使用事件委派)
     recordList.querySelectorAll('button[data-action]').forEach(btn => {

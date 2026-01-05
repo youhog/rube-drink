@@ -3,6 +3,19 @@
 body {
     font-family: 'Noto+Sans+TC', sans-serif;
     background-color: #fffaf0;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* 深色模式背景 */
+.dark body {
+    background-color: #1c1917; /* stone-900 */
+    color: #e7e5e4; /* stone-200 */
+}
+
+/* 確保卡片在深色模式有正確背景 */
+.dark .bg-white {
+    background-color: #292524; /* stone-800 */
+    border-color: #44403c; /* stone-700 */
 }
 
 .option-btn {
@@ -10,8 +23,17 @@ body {
     color: #9a3412;
 }
 
+.dark .option-btn {
+    border-color: #44403c;
+    color: #d6d3d1;
+}
+
 .option-btn:hover {
     background-color: #fff7ed;
+}
+
+.dark .option-btn:hover {
+    background-color: #44403c;
 }
 
 .option-btn.active {
